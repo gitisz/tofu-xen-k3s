@@ -30,6 +30,36 @@ Create an folder called `.k3s` in the root of this cloned repository, then creat
     |-- .k3s
         |-- k3s_token
 
+### Cloud Image
+For the VMs to be created, you will need a cloud image. The guide started by referring to a blog at [mikansoro.org](https://mikansoro.org/blog/debian-cloud-init-xen-orchestra/), however that guide didn't fully work out. Instead, this guide uses a Debian 12 Bookwork cloud image, and uses Terraform to take care of installing the `xe-guest-utilities`.
+
+Therefore, you will need to download the Debian 12 Bookwork cloud image from the [Debian website](https://cdimage.debian.org/images/cloud/bookworm/) and create a Xen Orchestra Template from it (no need to create a new VM from the image, boot it, install guest-utilities, and then create a template from it. Instead, convert to .vmdk, then just create a template from the image with a name of `Debian Bookworm 12 - Cloud`).
+
+ 1. Example: `qemu-img convert -f qcow2 -O vmdk debian-12-generic-amd64-20241125-1942.qcow2 debian-12-generic-amd64-20241125-1942.vmdk`
+ 2. Import the template into Xen Orchestra
+
+![vmdk-import-cloud-image-1](docs/vmdk-import-cloud-image-1.png)
+
+ 3. Create a new VM the template `Debian Bookworm 12`
+ 4. Name the VM `Debian Bookworm 12 - Cloud`
+ 5. Select Install Settings > PXE boot
+ 6. Remove any interfaces from the VM
+ 7. Remove any disks from the VM
+ 7. Uncheck Advanced > Boot VM after creation
+
+![vmdk-import-cloud-image-2](docs/vmdk-import-cloud-image-2.png)
+![vmdk-import-cloud-image-3](docs/vmdk-import-cloud-image-3.png)
+
+ 8. Click Create
+
+ 9. From the new VM, click Disks > Attach disk, and attach the `.vmdk` file you created in step 1.
+
+![vmdk-import-cloud-image-4](docs/vmdk-import-cloud-image-4.png)
+
+ 10. From Advanced, change to boot order to Hard-Drive, click Save
+ 11. Click Convert to Template
+
+![vmdk-import-cloud-image-5](docs/vmdk-import-cloud-image-5.png)
 
 ### Terraform
 Install Tofu:
@@ -76,7 +106,7 @@ If the plan looks good, you can execute it with `tofu apply`. Here is an example
     tofu apply -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="cluster_start_ip=192.168.1.10" -var="load_balancer_ip=192.168.1.10" -var="metallb_ip_range=192.168.1.30-192.168.1.40"
 
 
-Unless you have provided your own names, you should expect the following resources to be created:
+Unless you have provided your own names, you should expect the following resources to be created in XOA:
 
 **K3S Cluster**
  - TOFU-SRVR-0
