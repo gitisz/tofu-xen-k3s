@@ -44,10 +44,10 @@ resource "xenorchestra_vm" "first_vm" {
   provisioner "local-exec" {
     command = <<EOT
       # Copy the k3s.yaml file to the local machine
-      scp -i .ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null administrator@${var.cluster_start_ip}:/k3s/local-k3s.yaml ~/.kube/config
+      scp -i .ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null administrator@${var.cluster_start_ip}:/k3s/local-k3s.yaml ~/.kube/config >/dev/null 2>&1
 
       # Replace the 'server: https://127.0.0.1:6443' with the actual cluster IP
-      sed -i '' 's|server: https://127.0.0.1:6443|server: https://${var.cluster_alb_ip}:6443|g' ~/.kube/config
+      sed -i '' 's|server: https://127.0.0.1:6443|server: https://${var.cluster_alb_ip}:6443|g' ~/.kube/config >/dev/null 2>&1
   EOT
   }
 
