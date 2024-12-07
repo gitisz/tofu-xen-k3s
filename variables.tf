@@ -35,6 +35,6 @@ variable "cluster_alb_ip" {
 }
 
 
-variable "metallb-ip-range" {
+variable "metallb_ip_range" {
   default = "10.10.10.30-10.10.10.40"
 }

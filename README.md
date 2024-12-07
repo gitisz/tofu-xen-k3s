@@ -64,23 +64,26 @@ _NOTE Agent nodes are configured with DHCP._
 
 The automation installs `kube-vip` so that the cluster can be load balanced through a load balancer IP address, which can also be defined during execution.
 
-    tofu plan -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="load_balancer_ip=192.168.1.10"
+    tofu plan -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="cluster_alb_ip=192.168.1.10"
 
 The automation also installs `metallb` so that your applications can be load balanced through a load balancer IP address range, which can also be defined during execution.
 
-    tofu plan -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="load_balancer_ip=192.168.1.10" -var="load_balancer_ip_range=192.168.1.30-192.168.1.40"
+    tofu plan -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="load_balancer_ip=192.168.1.10" -var="metallb_ip_range=192.168.1.30-192.168.1.40"
 
 ### Executing the Deployment
 If the plan looks good, you can execute it with `tofu apply`. Here is an example of executing the deployment with the variables defined above:
 
-    tofu apply -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="cluster_start_ip=192.168.1.10" -var="load_balancer_ip=192.168.1.10" -var="load_balancer_ip_range=192.168.1.30-192.168.1.40"
+    tofu apply -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="cluster_start_ip=192.168.1.10" -var="load_balancer_ip=192.168.1.10" -var="metallb_ip_range=192.168.1.30-192.168.1.40"
 
 
 Unless you have provided your own names, you should expect the following resources to be created:
 
+**K3S Cluster**
  - TOFU-SRVR-0
  - TOFU_SRVR-1
  - TOFU_SRVR-2
+
+**K3S Agent Nodes**
  - TOFU_AGNT-0
  - TOFU_AGNT-1
  - TOFU_AGNT-2
