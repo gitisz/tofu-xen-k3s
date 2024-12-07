@@ -93,3 +93,9 @@ During provisioning, the first VM `TOFU-SRVR-0` will be configured with a static
 Also, after the k3s cluster is ready, the automation will then install `kube-vip` and `metallb` onto the cluster, and then configure the load balancer IP address and load balancer IP range.
 
 Finally, the automation will create the additional server nodes and agent nodes, and then join them to the k3s cluster.
+
+## Inspirations
+This Terraform configuration was inspired by the following sources:
+
+ - https://mikansoro.org/blog/debian-cloud-init-xen-orchestra/
+ - https://technotim.live/posts/k3s-etcd-ansible/
