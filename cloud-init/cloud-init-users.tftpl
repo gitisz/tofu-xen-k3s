@@ -1,0 +1,31 @@
+#cloud-config
+hostname: {name}
+
+groups:
+  - local_admins: [root]
+
+users:
+  - name: administrator
+    gecos: "administrator"
+    groups: [adm, audio, cdrom, dialout, dip, floppy, local_admins, netdev, plugdev, sudo, video]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC4aQtLWiyahyCpBrkdloHkrRqRBpLynseacsgGcl5BEarhFFU+d7WQPpFSTsq1k12LZOpEHCNbLiwQ0j4/mwmoMazc6bW3Nb53xZhg2xcuAIKmr1oB44JWJ/zL9675uH663FwWFdVXr8/c64lw0Zkr4V8+CNUFOL1LiyONdnljk6Egy//+NsG+ZXJ/KF2VwhaIDu0if3KphffJVeIvHA9zvrhfAo7BMT8mVyUl8HVgYmTYooZl07BFzRkDcU7NTCU9ehIVMRxpE1xQiJW8FDMXQwjM0JWGXPxPiRTr7K7z7fzL11/DJBKPdKitsp/HmxCWGRcN+mXed0P23TC0LezWdBE+uXlFgNj2VSc2MRDvl1eGGXK7h5wnocMqFPsxuNYfEiwOh2bGyVB03Acp8Zvxmf9KpGv7nzWktVhr3xK7MPtRcU2A3Qs5kwfVlBYjEEDj5is4SHdbXxZQdZD8VLu8RoBjPqB6jIgUxgxgXAEKf6svi8xxTiHe3VHdJXLgOqVR4Aab4aBDGxoBnUSEiXdoj/d3ZKwMNBhnq5hEBtUEBi2aQFwgQ7lN8CVzEHulUKOG8LD2RAxZCOpheoYOLLHXm2x969DjwIVxh0qVi75M6gfq7y3o9kIW83kUUup21ut7bOtnZ/1u/PXZJfJG7psxUHzU1DJNBCLa14/3qDzYsQ== administrator@iszland.com
+    lock_passwd: false
+    shell: /bin/bash
+
+packages:
+  - htop
+  - curl
+  - jq
+  - vim
+  - net-tools
+  - git
+  - mosh
+  - gnupg
+  - make
+  - tree
+
+package_update: true
+package_upgrade: true
+

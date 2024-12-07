@@ -1,0 +1,57 @@
+#cloud-config
+hostname: "${host_name_prefix}-${count}"
+
+groups:
+  - local_admins: [root]
+
+users:
+  - name: "administrator"
+    gecos: "administrator"
+    groups: [adm, audio, cdrom, dialout, dip, floppy, local_admins, netdev, plugdev, sudo, video]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+    lock_passwd: false
+    shell: /bin/bash
+
+packages:
+  - htop
+  - curl
+  - wget
+  - jq
+  - vim
+  - net-tools
+  - git
+  - mosh
+  - gnupg
+  - make
+  - tree
+  - ufw
+  - ca-certificates
+
+package_update: true
+package_upgrade: true
+
+runcmd:
+  - [ wget, -O, xe.deb, https://github.com/xenserver/xe-guest-utilities/releases/download/v8.4.0/xe-guest-utilities_8.4.0-1_amd64.deb ]
+  - [ dpkg, -i, xe.deb ]
+  - [ rm, xe.deb ]
+  - |
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+    docker run hello-world
+  - |
+    if ! grep -q "export PATH=\"/usr/local/bin:\$PATH\"" /home/administrator/.bashrc; then
+      echo 'export PATH="/usr/local/bin:$PATH"' >> /home/administrator/.bashrc
+    fi
+  - |
+    ############
+    # INSTALL: k3s agent
+    ############
+    curl -sfL https://get.k3s.io | K3S_URL=https://${cluster_alb_ip}:6443 K3S_TOKEN=${k3s_token} sh -
+
+write_files:
+  - path: /etc/sudoers.d/admin_path
+    permissions: "0440"
+    content: |
+      Defaults    secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"

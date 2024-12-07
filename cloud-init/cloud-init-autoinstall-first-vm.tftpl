@@ -1,0 +1,118 @@
+#cloud-config
+hostname: "${host_name_prefix}-${count}"
+
+groups:
+  - local_admins: [root]
+
+users:
+  - name: "administrator"
+    gecos: "administrator"
+    groups: [adm, audio, cdrom, dialout, dip, floppy, local_admins, netdev, plugdev, sudo, video]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+    lock_passwd: false
+    shell: /bin/bash
+
+packages:
+  - htop
+  - curl
+  - wget
+  - jq
+  - vim
+  - net-tools
+  - git
+  - mosh
+  - gnupg
+  - make
+  - tree
+  - ufw
+  - ca-certificates
+
+package_update: true
+package_upgrade: true
+
+runcmd:
+  - [ wget, -O, xe.deb, https://github.com/xenserver/xe-guest-utilities/releases/download/v8.4.0/xe-guest-utilities_8.4.0-1_amd64.deb ]
+  - [ dpkg, -i, xe.deb ]
+  - [ rm, xe.deb ]
+  - |
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+    docker run hello-world
+  - |
+    if ! grep -q "export PATH=\"/usr/local/bin:\$PATH\"" /home/administrator/.bashrc; then
+      echo 'export PATH="/usr/local/bin:$PATH"' >> /home/administrator/.bashrc
+    fi
+  - |
+    ############
+    # INSTALL: kube-vip
+    ############
+    mkdir -p /var/lib/rancher/k3s/server/manifests/
+    curl https://kube-vip.io/manifests/rbac.yaml > /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
+    export VIP=${cluster_alb_ip}
+    export INTERFACE=enX0
+    KVVERSION=$(curl -sL https://api.github.com/repos/kube-vip/kube-vip/releases | jq -r ".[0].name")
+    alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:$KVVERSION"
+    echo "---" >> /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
+    kube-vip manifest daemonset \
+      --interface $INTERFACE \
+      --address $VIP \
+      --inCluster \
+      --taint \
+      --controlplane \
+      --services \
+      --arp \
+      --leaderElection >> /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
+    ############
+    # INSTALL: k3s
+    ############
+    curl -sfL https://get.k3s.io | sh -s - server \
+      --cluster-init \
+      --disable servicelb \
+      --disable traefik \
+      --write-kubeconfig-mode 644 \
+      --kube-apiserver-arg default-not-ready-toleration-seconds=30 \
+      --kube-apiserver-arg default-unreachable-toleration-seconds=30 \
+      --kube-controller-arg node-monitor-period=20s \
+      --kube-controller-arg node-monitor-grace-period=20s \
+      --kubelet-arg node-status-update-frequency=5s \
+      --token ${k3s_token} \
+      --tls-san ${cluster_alb_ip}
+    install -o administrator -g administrator /etc/rancher/k3s/k3s.yaml /k3s/local-k3s.yaml
+    ############
+    # INSTALL: metallb
+    ############
+    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
+    # Wait for the controller deployment to be available
+    kubectl -n metallb-system wait --for=condition=Available=True deployment/controller --timeout=300s
+    # Wait for the webhook service pod to be in Running phase
+    kubectl -n metallb-system wait --for=jsonpath='{.status.phase}'=Running pod --selector=component=controller --timeout=300s
+    # Wait for pods in the replica set to be Ready
+    kubectl -n metallb-system wait --for=condition=Ready pod --selector=component=controller,app=metallb --timeout=300s
+    # Wait for the ready replicas in the replica set to reach 1
+    kubectl -n metallb-system wait --for=jsonpath='{.status.readyReplicas}'=1 replicaset --selector=component=controller,app=metallb --timeout=300s
+    # Wait for the fully labeled replicas in the replica set to reach 1
+    kubectl -n metallb-system wait --for=jsonpath='{.status.fullyLabeledReplicas}'=1 replicaset --selector=component=controller,app=metallb --timeout=300s
+    # Wait for the available replicas in the replica set to reach 1
+    kubectl -n metallb-system wait --for=jsonpath='{.status.availableReplicas}'=1 replicaset --selector=component=controller,app=metallb --timeout=300s
+    # Test MetalLB Endpoints
+    kubectl -n metallb-system get endpoints metallb-webhook-service
+    # Apply MetalLB CRDs
+    kubectl apply -f /k3s/metallb-address-pool.yaml
+    # Test MetalLB IPAddressPool
+    kubectl -n metallb-system get IPAddressPool
+    # Test MetalLB L2Advertisement
+    kubectl -n metallb-system get L2Advertisement
+
+write_files:
+
+  - path: /etc/sudoers.d/admin_path
+    permissions: "0440"
+    content: |
+      Defaults    secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+  - path: /k3s/metallb-address-pool.yaml
+    permissions: "0644"
+    content: |
+      ${metallb_yaml}

@@ -1,0 +1,16 @@
+#cloud-config
+network:
+  version: 1
+  config:
+  - type: physical
+    name: enX0
+    subnets:
+      - type: static
+        address: ${ip_address}/24
+        gateway: 10.10.10.1
+        dns_nameservers:
+          - 10.10.10.10
+          - 10.10.10.11
+          - 10.10.10.12
+        dns_search:
+          - ISZLAND.COM
