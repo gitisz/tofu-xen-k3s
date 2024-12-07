@@ -11,9 +11,11 @@ resource "xenorchestra_vm" "first_vm" {
   network {
     network_id = data.xenorchestra_network.eth0.id
   }
+
   network {
     network_id = data.xenorchestra_network.vlan111.id
   }
+
   network {
     network_id = data.xenorchestra_network.eth1.id
   }
@@ -35,20 +37,13 @@ resource "xenorchestra_vm" "first_vm" {
     inline = [
       "echo 'Waiting for VM to be up...'",
       "while ! sudo test -f /var/lib/rancher/k3s/server/node-token; do echo 'Waiting for K3S token'; sleep 10; done",
-      "echo 'VM and K3S token are ready!'"
+      "while ! sudo test -f /k3s/local-k3s.yaml; do echo 'Waiting for K3S Kube Config'; sleep 10; done",
+      "echo 'VM, K3S Token, and Kube Config are ready 🚀'"
     ]
   }
 
-
-  # Provisioner to fetch and format k3s.yaml locally
   provisioner "local-exec" {
-    command = <<EOT
-      # Copy the k3s.yaml file to the local machine
-      scp -i .ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null administrator@${var.cluster_start_ip}:/k3s/local-k3s.yaml ~/.kube/config >/dev/null 2>&1
-
-      # Replace the 'server: https://127.0.0.1:6443' with the actual cluster IP
-      sed -i '' 's|server: https://127.0.0.1:6443|server: https://${var.cluster_alb_ip}:6443|g' ~/.kube/config >/dev/null 2>&1
-  EOT
+    command = "bash ./scripts/fetch_k3s.sh ${var.XOA_USER} ${var.cluster_start_ip} ${var.cluster_alb_ip}"
   }
 
   tags = [
@@ -71,9 +66,11 @@ resource "xenorchestra_vm" "other_server_vms" {
   network {
     network_id = data.xenorchestra_network.eth0.id
   }
+
   network {
     network_id = data.xenorchestra_network.vlan111.id
   }
+
   network {
     network_id = data.xenorchestra_network.eth1.id
   }
@@ -106,9 +103,11 @@ resource "xenorchestra_vm" "other_agent_vms" {
   network {
     network_id = data.xenorchestra_network.eth0.id
   }
+
   network {
     network_id = data.xenorchestra_network.vlan111.id
   }
+
   network {
     network_id = data.xenorchestra_network.eth1.id
   }
