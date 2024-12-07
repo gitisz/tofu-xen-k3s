@@ -38,7 +38,7 @@ Therefore, you will need to download the Debian 12 Bookwork cloud image from the
  1. Example: `qemu-img convert -f qcow2 -O vmdk debian-12-generic-amd64-20241125-1942.qcow2 debian-12-generic-amd64-20241125-1942.vmdk`
  2. Import the template into Xen Orchestra
 
-![vmdk-import-cloud-image-1](docs/vmdk-import-cloud-image-1.png)
+<img src="docs/vmdk-import-cloud-image-1.png" width="400"  alt="vmdk-import-cloud-image-1">
 
  3. Create a new VM the template `Debian Bookworm 12`
  4. Name the VM `Debian Bookworm 12 - Cloud`
@@ -47,19 +47,19 @@ Therefore, you will need to download the Debian 12 Bookwork cloud image from the
  7. Remove any disks from the VM
  7. Uncheck Advanced > Boot VM after creation
 
-![vmdk-import-cloud-image-2](docs/vmdk-import-cloud-image-2.png)
-![vmdk-import-cloud-image-3](docs/vmdk-import-cloud-image-3.png)
+<img src="docs/vmdk-import-cloud-image-2.png" width="400"  alt="vmdk-import-cloud-image-2">
+<img src="docs/vmdk-import-cloud-image-3.png" width="400"  alt="vmdk-import-cloud-image-3">
 
  8. Click Create
 
  9. From the new VM, click Disks > Attach disk, and attach the `.vmdk` file you created in step 1.
 
-![vmdk-import-cloud-image-4](docs/vmdk-import-cloud-image-4.png)
+<img src="docs/vmdk-import-cloud-image-4.png" width="400"  alt="vmdk-import-cloud-image-4">
 
  10. From Advanced, change to boot order to Hard-Drive, click Save
  11. Click Convert to Template
 
-![vmdk-import-cloud-image-5](docs/vmdk-import-cloud-image-5.png)
+<img src="docs/vmdk-import-cloud-image-5.png" width="400"  alt="vmdk-import-cloud-image-5">
 
 ### Terraform
 Install Tofu:

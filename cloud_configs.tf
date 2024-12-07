@@ -12,7 +12,7 @@ resource "xenorchestra_cloud_config" "cloud_config_first_vm" {
       cluster_alb_ip = var.cluster_alb_ip,
       cluster_start_ip =  "${var.cluster_start_ip}",
       metallb_yaml      = indent(6, templatefile("./metallb/metallb-address-pool.yaml", {
-        metallb_ip_range = var.metallb-ip-range
+        metallb_ip_range = var.metallb_ip_range
       }))
     }
   )
