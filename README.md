@@ -118,7 +118,7 @@ Unless you have provided your own names, you should expect the following resourc
  - TOFU_AGNT-1
  - TOFU_AGNT-2
 
-During provisioning, the first VM `TOFU-SRVR-0` will be configured with a static IP address, and when the IP is assigned, the automation will then being to check for the readiness of the k3s cluster, for which it will then download the `kube-config` file locally for you to later execute `kubectl` commands.
+During provisioning, the first VM `TOFU-SRVR-0` will be configured with a static IP address, and when the IP is assigned, the automation will then begin to check for the readiness of the k3s cluster, for which it will then download the `kube-config` file locally for you to later execute `kubectl` commands.
 
 Also, after the k3s cluster is ready, the automation will then install `kube-vip` and `metallb` onto the cluster, and then configure the load balancer IP address and load balancer IP range.
 
