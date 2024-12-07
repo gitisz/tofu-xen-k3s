@@ -27,7 +27,7 @@ data "xenorchestra_network" "eth1" {
 }
 
 data "external" "next_ip" {
-  count = var.additional_server_vm_count
+  count = var.server_vm_count - 1
   program = ["python3", "./scripts/next_ip.py"]
   query = {
     start_ip  = var.cluster_start_ip

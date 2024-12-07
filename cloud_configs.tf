@@ -29,7 +29,7 @@ resource "xenorchestra_cloud_config" "cloud_network_config_first_vm" {
 }
 
 resource "xenorchestra_cloud_config" "cloud_config_other_server_vms" {
-  count     = var.additional_server_vm_count
+  count     = var.server_vm_count - 1
   name      = "Hosted VM Cloud-Init: User-Data"
   template  = templatefile(
     "./cloud-init/cloud-init-autoinstall-other-server-vms.tftpl",
@@ -46,7 +46,7 @@ resource "xenorchestra_cloud_config" "cloud_config_other_server_vms" {
 }
 
 resource "xenorchestra_cloud_config" "cloud_network_config_other_server_vms" {
-  count     = var.additional_server_vm_count
+  count     = var.server_vm_count - 1
   name      = "Hosted VM Cloud-Init: Network"
   template  = templatefile(
     "./cloud-init/cloud-init-networks-static.tftpl",
@@ -58,7 +58,7 @@ resource "xenorchestra_cloud_config" "cloud_network_config_other_server_vms" {
 
 
 resource "xenorchestra_cloud_config" "cloud_config_other_agent_vms" {
-  count     = var.additional_agent_vm_count
+  count     = var.agent_vm_count
   name      = "Hosted VM Cloud-Init: User-Data"
   template  = templatefile(
     "./cloud-init/cloud-init-autoinstall-other-agent-vms.tftpl",
@@ -76,7 +76,7 @@ resource "xenorchestra_cloud_config" "cloud_config_other_agent_vms" {
 
 
 resource "xenorchestra_cloud_config" "cloud_network_config_other_agent_vms" {
-  count     = var.additional_agent_vm_count
+  count     = var.agent_vm_count
   name      = "Hosted VM Cloud-Init: Network"
   template  = templatefile(
     "./cloud-init/cloud-init-networks-dhcp.tftpl",

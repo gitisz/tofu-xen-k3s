@@ -60,7 +60,7 @@ resource "xenorchestra_vm" "first_vm" {
 
 
 resource "xenorchestra_vm" "other_server_vms" {
-  count       = var.additional_server_vm_count
+  count       = var.server_vm_count - 1
   memory_max  = 8589934592  # 8 GB in bytes
   cpus        = 4
   name_label  = "${var.server_host_name_prefix}-${count.index + 1}"
@@ -95,7 +95,7 @@ resource "xenorchestra_vm" "other_server_vms" {
 
 
 resource "xenorchestra_vm" "other_agent_vms" {
-  count       = var.additional_agent_vm_count
+  count       = var.agent_vm_count
   memory_max  = 8589934592  # 8 GB in bytes
   cpus        = 4
   name_label  = "${var.agent_host_name_prefix}-${count.index}"

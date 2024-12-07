@@ -18,11 +18,11 @@ variable "agent_host_name_prefix" {
   default = "TOFU-AGNT"
 }
 
-variable "additional_server_vm_count" {
-  default = 2
+variable "server_vm_count" {
+  default = 3
 }
 
-variable "additional_agent_vm_count" {
+variable "agent_vm_count" {
   default = 3
 }
 
@@ -33,7 +33,6 @@ variable "cluster_start_ip" {
 variable "cluster_alb_ip" {
   default = "10.10.10.3"
 }
-
 
 variable "metallb_ip_range" {
   default = "10.10.10.30-10.10.10.40"

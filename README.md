@@ -80,13 +80,13 @@ First, you should `tofu plan` your deployment and review the generated output to
 
 The Terraform has variables that enable you to customize the deployment, for example:
 
-    tofu plan -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3"
+    tofu plan -var="server_vm_count=2" -var="agent_vm_count=3"
 
 This will show the plan for creating 3 server nodes for high availability and 3 agent nodes for your applications.
 
 When the initial server is created, it will be configured with a static IP address, which can be defined during execution.
 
-    tofu plan -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="cluster_start_ip=192.168.1.10"
+    tofu plan -var="server_vm_count=2" -var="agent_vm_count=3" -var="cluster_start_ip=192.168.1.10"
 
 Each additional server node will be configured with a static IP address, which will be incremented by 1 for each additional server node.
 
@@ -94,16 +94,16 @@ _NOTE Agent nodes are configured with DHCP._
 
 The automation installs `kube-vip` so that the cluster can be load balanced through a load balancer IP address, which can also be defined during execution.
 
-    tofu plan -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="cluster_alb_ip=192.168.1.10"
+    tofu plan -var="server_vm_count=2" -var="agent_vm_count=3" -var="cluster_alb_ip=192.168.1.10"
 
 The automation also installs `metallb` so that your applications can be load balanced through a load balancer IP address range, which can also be defined during execution.
 
-    tofu plan -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="load_balancer_ip=192.168.1.10" -var="metallb_ip_range=192.168.1.30-192.168.1.40"
+    tofu plan -var="server_vm_count=2" -var="agent_vm_count=3" -var="load_balancer_ip=192.168.1.10" -var="metallb_ip_range=192.168.1.30-192.168.1.40"
 
 ### Executing the Deployment
 If the plan looks good, you can execute it with `tofu apply`. Here is an example of executing the deployment with the variables defined above:
 
-    tofu apply -var="additional_server_vm_count=2" -var="additional_agent_vm_count=3" -var="cluster_start_ip=192.168.1.10" -var="load_balancer_ip=192.168.1.10" -var="metallb_ip_range=192.168.1.30-192.168.1.40"
+    tofu apply -var="server_vm_count=2" -var="agent_vm_count=3" -var="cluster_start_ip=192.168.1.10" -var="load_balancer_ip=192.168.1.10" -var="metallb_ip_range=192.168.1.30-192.168.1.40"
 
 
 Unless you have provided your own names, you should expect the following resources to be created in XOA:
