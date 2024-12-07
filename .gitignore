@@ -39,6 +39,5 @@ terraform.rc
 
 .env
 
-!.ssh
 .ssh/*
 .k3s/*

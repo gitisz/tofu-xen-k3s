@@ -26,13 +26,14 @@ variable "additional_agent_vm_count" {
   default = 3
 }
 
+variable "cluster_start_ip" {
+  default = "10.10.10.4"
+}
+
 variable "cluster_alb_ip" {
   default = "10.10.10.3"
 }
 
-variable "cluster_start_ip" {
-  default = "10.10.10.4"
-}
 
 variable "metallb-ip-range" {
   default = "10.10.10.30-10.10.10.40"
