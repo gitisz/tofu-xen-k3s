@@ -10,7 +10,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`nginx-2.iszland.com`)
+    - match: Host(`nginx-2.my-domain.com`)
       kind: Rule
       services:
         - name: nginx
@@ -18,4 +18,4 @@ spec:
       middlewares:
         - name: default-headers
   tls:
-    secretName: iszland-com-tls
+    secretName: my-domain-com-tls

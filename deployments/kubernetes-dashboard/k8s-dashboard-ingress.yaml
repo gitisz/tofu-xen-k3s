@@ -19,14 +19,14 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - kind: Rule
-    match:   Host(`kubernetes-dashboard.iszland.com`)
-    priority: 10
-    services:
-    - kind: Service
-      name: kubernetes-dashboard
-      namespace: kubernetes-dashboard
-      port: 443
-      serversTransport: kubernetes-dashboard-transport
+    - kind: Rule
+      match: Host(`kubernetes-dashboard.my-domain.com`)
+      priority: 10
+      services:
+        - kind: Service
+          name: kubernetes-dashboard
+          namespace: kubernetes-dashboard
+          port: 443
+          serversTransport: kubernetes-dashboard-transport
   tls:
-    secretName: iszland-com-tls
+    secretName: my-domain-com-tls
