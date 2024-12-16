@@ -7,7 +7,20 @@ groups:
 users:
   - name: "administrator"
     gecos: "administrator"
-    groups: [adm, audio, cdrom, dialout, dip, floppy, local_admins, netdev, plugdev, sudo, video]
+    groups:
+      [
+        adm,
+        audio,
+        cdrom,
+        dialout,
+        dip,
+        floppy,
+        local_admins,
+        netdev,
+        plugdev,
+        sudo,
+        video,
+      ]
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     ssh_authorized_keys:
       - ${ssh_public_key}
@@ -33,9 +46,14 @@ package_update: true
 package_upgrade: true
 
 runcmd:
-  - [ wget, -O, xe.deb, https://github.com/xenserver/xe-guest-utilities/releases/download/v8.4.0/xe-guest-utilities_8.4.0-1_amd64.deb ]
-  - [ dpkg, -i, xe.deb ]
-  - [ rm, xe.deb ]
+  - [
+      wget,
+      -O,
+      xe.deb,
+      https://github.com/xenserver/xe-guest-utilities/releases/download/v8.4.0/xe-guest-utilities_8.4.0-1_amd64.deb,
+    ]
+  - [dpkg, -i, xe.deb]
+  - [rm, xe.deb]
   - |
     curl -fsSL https://get.docker.com -o get-docker.sh
     sh get-docker.sh
@@ -50,7 +68,7 @@ runcmd:
     ############
     mkdir -p /var/lib/rancher/k3s/server/manifests/
     curl https://kube-vip.io/manifests/rbac.yaml > /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
-    export VIP=${cluster_alb_ip}
+    export VIP=${server_alb_ip}
     export INTERFACE=enX0
     KVVERSION=$(curl -sL https://api.github.com/repos/kube-vip/kube-vip/releases | jq -r ".[0].name")
     alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:$KVVERSION"
@@ -78,7 +96,7 @@ runcmd:
       --kube-controller-arg node-monitor-grace-period=20s \
       --kubelet-arg node-status-update-frequency=5s \
       --token ${k3s_token} \
-      --tls-san ${cluster_alb_ip}
+      --tls-san ${server_alb_ip}
     install -o administrator -g administrator /etc/rancher/k3s/k3s.yaml /k3s/local-k3s.yaml
     ############
     # INSTALL: metallb
@@ -104,9 +122,56 @@ runcmd:
     kubectl -n metallb-system get IPAddressPool
     # Test MetalLB L2Advertisement
     kubectl -n metallb-system get L2Advertisement
+  - |
+    ############
+    # INSTALL: helm
+    ############
+    curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+    echo "deb https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+    apt update
+    apt install helm
+    helm version
+
+      %{ if with_cert_manager == "true" }
+
+  - |
+    ############
+    # INSTALL: cert-manager
+    ############
+    helm repo add jetstack https://charts.jetstack.io
+    helm repo update
+    kubectl create namespace cert-manager
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.crds.yaml
+    helm install cert-manager jetstack/cert-manager \
+      --namespace cert-manager \
+      --version v1.16.2 \
+      --values=/k3s/cert-manager/chart-values.yaml \
+      --kubeconfig=/etc/rancher/k3s/k3s.yaml \
+      --wait
+    kubectl apply -f /k3s/cert-manager/issuers/secret-cf-token.yaml
+    kubectl apply -f /k3s/cert-manager/issuers/letsencrypt-issuer.yaml
+    kubectl apply -f /k3s/cert-manager/certificates/${cert_manager_issuer_environment}/certificate.yaml
+
+      %{ endif }
+      %{ if with_traefik == "true" }
+
+  - |
+    ############
+    # INSTALL: traefik
+    ############
+    helm repo add traefik https://helm.traefik.io/traefik
+    helm repo update
+    kubectl create namespace traefik
+    helm install --namespace=traefik traefik traefik/traefik --values=/k3s/traefik/chart-values.yaml --kubeconfig=/etc/rancher/k3s/k3s.yaml
+    kubectl apply -f /k3s/traefik/traefik-default-headers.yaml
+    kubectl apply -f /k3s/traefik/traefik-dashboard-auth.yaml
+    kubectl apply -f /k3s/traefik/traefik-dashboard-middleware.yaml
+    kubectl apply -f /k3s/traefik/traefik-dashboard-ingress.yaml
+    kubectl apply -f /k3s/traefik/certificates/${cert_manager_issuer_environment}/traefik-certificate.yaml
+
+      %{ endif }
 
 write_files:
-
   - path: /etc/sudoers.d/admin_path
     permissions: "0440"
     content: |
@@ -116,3 +181,60 @@ write_files:
     permissions: "0644"
     content: |
       ${metallb_yaml}
+
+      %{ if with_cert_manager == "true" }
+  - path: /k3s/cert-manager/chart-values.yaml
+    permissions: "0440"
+    content: |
+      ${cert_manager_chart_values}
+
+  - path: /k3s/cert-manager/issuers/secret-cf-token.yaml
+    permissions: "0440"
+    content: |
+      ${cert_manager_issuers_secret_cf_token}
+
+  - path: /k3s/cert-manager/issuers/letsencrypt-issuer.yaml
+    permissions: "0440"
+    content: |
+      ${cert_manager_issuers_letsencrypt_issuer}
+
+  - path: /k3s/cert-manager/certificates/${cert_manager_issuer_environment}/certificate.yaml
+    permissions: "0440"
+    content: |
+      ${cert_manager_certificates_environment_certificate}
+
+      %{ endif }
+
+      %{ if with_traefik == "true" }
+
+  - path: /k3s/traefik/chart-values.yaml
+    permissions: "0440"
+    content: |
+      ${traefik_chart_values}
+
+  - path: /k3s/traefik/traefik-dashboard-auth.yaml
+    permissions: "0440"
+    content: |
+      ${traefik_traefik_dashboard_auth}
+
+  - path: /k3s/traefik/traefik-dashboard-ingress.yaml
+    permissions: "0440"
+    content: |
+      ${traefik_traefik_dashboard_ingress}
+
+  - path: /k3s/traefik/traefik-dashboard-middleware.yaml
+    permissions: "0440"
+    content: |
+      ${traefik_traefik_dashboard_middleware}
+
+  - path: /k3s/traefik/traefik-default-headers.yaml
+    permissions: "0440"
+    content: |
+      ${traefik_traefik_default_headers}
+
+  - path: /k3s/traefik/certificates/${cert_manager_issuer_environment}/traefik-certificate.yaml
+    permissions: "0440"
+    content: |
+      ${traefik_certificates_environment_certificate}
+
+      %{ endif }
