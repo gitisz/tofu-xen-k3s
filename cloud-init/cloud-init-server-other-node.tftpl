@@ -7,7 +7,20 @@ groups:
 users:
   - name: "administrator"
     gecos: "administrator"
-    groups: [adm, audio, cdrom, dialout, dip, floppy, local_admins, netdev, plugdev, sudo, video]
+    groups:
+      [
+        adm,
+        audio,
+        cdrom,
+        dialout,
+        dip,
+        floppy,
+        local_admins,
+        netdev,
+        plugdev,
+        sudo,
+        video,
+      ]
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     ssh_authorized_keys:
       - ${ssh_public_key}
@@ -33,9 +46,14 @@ package_update: true
 package_upgrade: true
 
 runcmd:
-  - [ wget, -O, xe.deb, https://github.com/xenserver/xe-guest-utilities/releases/download/v8.4.0/xe-guest-utilities_8.4.0-1_amd64.deb ]
-  - [ dpkg, -i, xe.deb ]
-  - [ rm, xe.deb ]
+  - [
+      wget,
+      -O,
+      xe.deb,
+      https://github.com/xenserver/xe-guest-utilities/releases/download/v8.4.0/xe-guest-utilities_8.4.0-1_amd64.deb,
+    ]
+  - [dpkg, -i, xe.deb]
+  - [rm, xe.deb]
   - |
     curl -fsSL https://get.docker.com -o get-docker.sh
     sh get-docker.sh
@@ -59,7 +77,7 @@ runcmd:
       --kube-controller-arg node-monitor-period=20s \
       --kube-controller-arg node-monitor-grace-period=20s \
       --kubelet-arg node-status-update-frequency=5s \
-      --tls-san ${cluster_alb_ip}
+      --tls-san ${server_alb_ip}
 
 write_files:
   - path: /etc/sudoers.d/admin_path
