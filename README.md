@@ -28,7 +28,7 @@ Change the permissions of the SSH key pair: `chmod 600 ~/.ssh/id_rsa`
 
 
 ### K3S Token
-Create a folder called `.k3s` in the root of this cloned repository, then create a file in it called `k3s_token`. Add a your desired secret to this file. This token/secret will be used to join the K3S nodes to the cluster.
+Create a folder called `.k3s` in the root of this cloned repository, then create a file in it called `k3s_token`. Add your desired secret to this file. This token/secret will be used to join the K3S nodes to the cluster.
 
 
     |-- .k3s
@@ -150,17 +150,17 @@ Finally, the automation will create the additional server nodes and agent nodes,
 ## With Cert-Manager
 You have an additional option to install [`cert-manager`](https://cert-manager.io/docs/) on the cluster.
 
-**IMPORTANT**: _This option should not be used unless you have first manually configured `cert-manager` in your cluster using the `staging` issuer and you have thoroughly tested certificate issuance. Once tested & validated, the cluster can be destroyed and recreated with cert-manager` through the provided automation._
+**IMPORTANT**: _This option should not be used unless you have first thoroughly tested certificate issuance with `cert-manager` in your cluster using the `staging` issuer. Once tested & validated, the cluster can be destroyed and recreated with cert-manager` through the provided automation._
 
 Before proceeding, you will need to update and source your `.env` file. The following environment variables are required:
 
- - **CERT_MANAGER_CLOUDFLARE_EMAIL**: `<cloudflare-email>` associated with the Cloudflare account.
- - **CERT_MANAGER_CLOUDFLARE_API_TOKEN**: `<cloudflare-api-token>` retrieved from you Cloudflare account.
- - **CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX**: `<cloudflare-secret-name-prefix>` to be used for the Cloudflare DNS secret, e.g. A value of `my-domain-com` will result in a K3S secret `my-domain-com-production-tls` for appending to other app installations.
- - **CERT_MANAGER_CLOUDFLARE_DNS_ZONE**: `<cloudflare-dns-zone>` e.g. `my-domain.com`
- - **CERT_MANAGER_LETSENCRYPT_EMAIL**: `<your-email-address>` to be used for the Let's Encrypt email address.
+ - **TF_VAR_CERT_MANAGER_CLOUDFLARE_EMAIL**: `<cloudflare-email>` associated with the Cloudflare account.
+ - **TF_VAR_CERT_MANAGER_CLOUDFLARE_API_TOKEN**: `<cloudflare-api-token>` retrieved from you Cloudflare account.
+ - **TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX**: `<cloudflare-secret-name-prefix>` to be used for the Cloudflare DNS secret, e.g. A value of `my-domain-com` will result in a K3S secret `my-domain-com-production-tls` for appending to other app installations.
+ - **TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_ZONE**: `<cloudflare-dns-zone>` e.g. `my-domain.com`
+ - **TF_VAR_CERT_MANAGER_LETSENCRYPT_EMAIL**: `<your-email-address>` to be used for the Let's Encrypt email address.
 
-When you execute the Terraform `apply`, you can define the `with_cert_manager` variable to `true` to automatically install `cert-manager` onto the cluster.
+When you execute the Terraform `apply`, you can provide the `with_cert_manager=true` option to automatically install `cert-manager` on the cluster.
 
 ```
 tofu plan -var="with_cert_manager=true"
@@ -174,7 +174,7 @@ tofu apply -auto-approve -var="with_cert_manager=true"
 
 **IMPORTANT**: _This option will install the `staging` issuer by default, allowing you to verify and ensure Let's Encrypt returns a valid staging certificate.  If using a misconfigured `production` certificate, Let's Encrypt can block DNS challenges preventing SSL/TLS renewal for up to 7 days._
 
-If you are ready to install the K3S cluster using a `production` certificate, you can define the `with_cert_manager` variable to `true` and define the `use_production_issuer` variable to `true`.
+If you are ready to install the K3S cluster using a `production` certificate, you can provide the `with_cert_manager=true` option, as well the `use_production_issuer=true` option.
 
 **Example**:
 
@@ -187,9 +187,7 @@ You have an additional option to install [`Traefik`](https://doc.traefik.io/trae
 
 This capability enables you to expose your K3S apps to your external network's subnet.
 
-Additionally, when paired with [cert-manager](https://cert-manager.io/docs/), you can configure `IngressRoute`s with Traefik to expose trusted certificate issued by Let's Encrypt.
-
-**NOTE**: _The Traefik configuration files provided assume [cert-manager](https://cert-manager.io/docs/) is installed. You must define the `with_traefik` variable to `true` to install Traefik onto the cluster._
+Additionally, when paired with [cert-manager](https://cert-manager.io/docs/), you can configure `IngressRoute`(s) with Traefik to expose a trusted certificate issued by Let's Encrypt.
 
 **NOTE**: _The Traefik configuration requires at least 1 agent node._
 
@@ -198,9 +196,9 @@ Before proceeding, you will need to update and source your `.env` file. The foll
 
  - **TF_VAR_TRAEFIK_DASHBOARD_AUTH**: `<traefik_dashboard_auth>` a base64 encoded username & password to enable the Traefik dashboard to accept basic authentication.
  - **TF_VAR_TRAEFIK_DASHBOARD_HOST**: `<traefik_dashboard_host>` the hostname to expose the Traefik dashboard.
- - **TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX**: `<cloudflare-secret-name-prefix>` to be used for the Cloudflare DNS secret, e.g. A value of `my-domain-com` will result in a K3S secret `my-domain-com-production-tls` for appending to other app installations.
+ - **TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX**: `<cloudflare-dns-secret-name-prefix>` to be used for the Cloudflare DNS secret, e.g. A value of `my-domain-com` will result in a K3S secret `traefik-my-domain-com-staging-tls`.
 
-When you execute the Terraform `apply`, you can define the `with_traefik` variable to `true` to automatically install `Traefik` onto the cluster.
+When you execute the Terraform `apply`, you can provide the `with_traefik=true` option to automatically install `Traefik` onto the cluster.
 
 ```
 tofu plan -var="with_cert_manager=true" -var="with_traefik=true"
