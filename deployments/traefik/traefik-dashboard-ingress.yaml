@@ -9,7 +9,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`${traefik_dashboard_host}`)
+    - match: Host(`${traefik_dashboard_fqdn}`)
       kind: Rule
       middlewares:
         - name: traefik-dashboard-basicauth

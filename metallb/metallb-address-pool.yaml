@@ -5,7 +5,8 @@ metadata:
   name: primary-pool
   namespace: metallb-system
 spec:
-  addresses:%{ for agent_alb_ip in agent_alb_additional_ips }
+  addresses:
+    - ${agent_alb_primary_ip}/32%{ for agent_alb_ip in agent_alb_additional_ips }
     - ${agent_alb_ip}/32%{ endfor }
 ---
 apiVersion: metallb.io/v1beta1

@@ -19,6 +19,7 @@ resource "xenorchestra_cloud_config" "cloud_config_server_first_node" {
       server_alb_ip           = var.server_alb_ip,
       cluster_start_ip        = "${var.cluster_start_ip}",
       metallb_yaml            = indent(6, templatefile("./metallb/metallb-address-pool.yaml", {
+        agent_alb_primary_ip = var.agent_alb_primary_ip
         agent_alb_additional_ips    = var.agent_alb_additional_ips
       })),
 
@@ -44,13 +45,13 @@ resource "xenorchestra_cloud_config" "cloud_config_server_first_node" {
       with_traefik                                      = var.with_traefik,
       traefik_chart_values                              = indent(6, templatefile("./deployments/traefik/chart-values.yaml", {
         agent_alb_primary_ip                            = "${var.agent_alb_primary_ip}",
-        agent_alb_additional_ips                              = var.agent_alb_additional_ips
+        agent_alb_additional_ips                        = var.agent_alb_additional_ips
       })),
       traefik_traefik_dashboard_auth                    = indent(6, templatefile("./deployments/traefik/traefik-dashboard-auth.yaml", {
         traefik_dashboard_auth                          = "${var.TRAEFIK_DASHBOARD_AUTH}"
       })),
       traefik_traefik_dashboard_ingress                 = indent(6, templatefile("./deployments/traefik/traefik-dashboard-ingress.yaml", {
-        traefik_dashboard_host                          = "${var.TRAEFIK_DASHBOARD_HOST}",
+        traefik_dashboard_fqdn                          = "${var.TRAEFIK_DASHBOARD_FQDN}",
         cert_manager_cloudflare_dns_secret_name_prefix  = "${var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX}",
         cert_manager_issuer_environment                 = local.cert_manager_issuer_environment
       })),
@@ -72,10 +73,9 @@ resource "xenorchestra_cloud_config" "cloud_config_server_first_node" {
       kubernetes_dashboard_admin_user                   = indent(6, templatefile("./deployments/kubernetes-dashboard/k8s-dashboard-admin-user.yaml", {
       })),
       kubernetes_dashboard_ingress                      = indent(6, templatefile("./deployments/kubernetes-dashboard/k8s-dashboard-ingress.yaml", {
-        kubernetes_cloudflare_dns_zone                  = var.CERT_MANAGER_CLOUDFLARE_DNS_ZONE,
+        kubernetes_dashboard_fqdn                               = "${var.KUBERNETES_DASHBOARD_FQDN}",
         kubernetes_dashboard_cloudflare_dns_secret_name_prefix  = "${var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX}",
         kubernetes_dashboard_issuer_environment                 = local.cert_manager_issuer_environment
-
       })),
       kubernetes_dashboard_certificates_environment_certificate      = indent(6, templatefile("./deployments/kubernetes-dashboard/certificates/${local.cert_manager_issuer_environment}/kubernetes-dashboard-certificate.yaml", {
         kubernetes_dashboard_cloudflare_dns_secret_name_prefix       = var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX,

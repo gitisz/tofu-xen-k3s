@@ -1,53 +1,91 @@
----
 apiVersion: traefik.io/v1alpha1
-kind: ServersTransport
+kind: Middleware
 metadata:
-  name: kubernetes-dashboard-transport
+  name: dashboard-http-redirect
   namespace: kubernetes-dashboard
-
 spec:
-  serverName: kubernetes-dashboard
-  insecureSkipVerify: true
-
+  redirectScheme:
+    scheme: https
+    permanent: true
 ---
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dashboard-http-redirect
+  namespace: kubernetes-dashboard
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: kube-dashboard-dashboard-http-redirect@kubernetescrd
+spec:
+  rules:
+  - host: ${kubernetes_dashboard_fqdn}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kubernetes-dashboard-web
+            port:
+              number: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
   name: dashboard-https
   namespace: kubernetes-dashboard
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/api/v1/login`)
-      kind: Rule
-      services:
-        - name: kubernetes-dashboard-auth
-          port: 8000
-    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/api/v1/csrftoken/login`)
-      kind: Rule
-      services:
-        - name: kubernetes-dashboard-auth
-          port: 8000
-    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/api/v1/me`)
-      kind: Rule
-      services:
-        - name: kubernetes-dashboard-auth
-          port: 8000
-    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/api`)
-      kind: Rule
-      services:
-        - name: kubernetes-dashboard-api
-          port: 8000
-    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/metrics`)
-      kind: Rule
-      services:
-        - name: kubernetes-dashboard-api
-          port: 8000
-    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/`)
-      kind: Rule
-      services:
-        - name: kubernetes-dashboard-web
-          port: 8000
   tls:
-    secretName: kubernetes-dashboard-${kubernetes_dashboard_cloudflare_dns_secret_name_prefix}-${kubernetes_dashboard_issuer_environment}-tls
+    - hosts:
+        - ${kubernetes_dashboard_fqdn}
+      secretName: kubernetes-dashboard-${kubernetes_dashboard_cloudflare_dns_secret_name_prefix}-${kubernetes_dashboard_issuer_environment}-tls
+  rules:
+    - host: ${kubernetes_dashboard_fqdn}
+      http:
+        paths:
+          - path: /api/v1/login
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-auth
+                port:
+                  number: 8000
+          - path: /api/v1/csrftoken/login
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-auth
+                port:
+                  number: 8000
+          - path: /api/v1/me
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-auth
+                port:
+                  number: 8000
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-api
+                port:
+                  number: 8000
+          - path: /metrics
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-api
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-web
+                port:
+                  number: 8000
+

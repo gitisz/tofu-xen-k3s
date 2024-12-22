@@ -50,6 +50,8 @@ service:
   annotations: {}
   labels: {}
   spec:
-    loadBalancerIP: 10.10.10.30
+    loadBalancerIP: ${agent_alb_primary_ip}
   loadBalancerSourceRanges: []
-  externalIPs: []
+  externalIPs:
+    - ${agent_alb_primary_ip}%{ for agent_alb_ip in agent_alb_additional_ips }
+    - ${agent_alb_ip}%{ endfor }

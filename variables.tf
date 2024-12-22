@@ -36,7 +36,11 @@ variable "TRAEFIK_DASHBOARD_AUTH" {
   sensitive   = true
 }
 
-variable "TRAEFIK_DASHBOARD_HOST" {
+variable "TRAEFIK_DASHBOARD_FQDN" {
+  sensitive   = true
+}
+
+variable "KUBERNETES_DASHBOARD_FQDN" {
   sensitive   = true
 }
 
@@ -103,4 +107,3 @@ variable "with_traefik" {
 variable "with_k8s_dashboard" {
   default = "false"
 }
-
