@@ -64,12 +64,26 @@ variable "server_alb_ip" {
   default = "10.10.10.3"
 }
 
-variable "agent_alb_ip_range" {
-  default = "10.10.10.30-10.10.10.40"
-}
 
 variable "agent_alb_primary_ip" {
   default = "10.10.10.30"
+}
+
+variable "agent_alb_additional_ips" {
+  description = "List of IP addresses for agent ALB"
+  type        = list(string)
+  default     = [
+    "10.10.10.31",
+    "10.10.10.32",
+    "10.10.10.33",
+    "10.10.10.34",
+    "10.10.10.35",
+    "10.10.10.36",
+    "10.10.10.37",
+    "10.10.10.38",
+    "10.10.10.39",
+    "10.10.10.40"
+  ]
 }
 
 variable "with_cert_manager" {
@@ -83,6 +97,10 @@ variable "use_production_issuer" {
 }
 
 variable "with_traefik" {
+  default = "false"
+}
+
+variable "with_k8s_dashboard" {
   default = "false"
 }
 

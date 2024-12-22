@@ -117,14 +117,14 @@ tofu plan -var="agent_node_count=3" -var="server_alb_ip=192.168.1.10"
 The automation also installs [`metallb`](https://metallb.io/) so that your applications can be load balanced through a load balancer IP address range, which can also be defined during execution.
 
 ```
-tofu plan -var="agent_node_count=3" -var="server_alb_ip=192.168.1.10" -var="agent_alb_ip_range=192.168.1.30-192.168.1.40"
+tofu plan -var="agent_node_count=3" -var="server_alb_ip=192.168.1.10" -var="agent_alb_additional_ips=192.168.1.30-192.168.1.40"
 ```
 
 ### Executing the Deployment
 If the `tofu plan` looks good, you can execute it with `tofu apply`. Here is an example of executing the deployment with the variables defined above:
 
 ```
-tofu apply -var="agent_node_count=3" -var="load_balancer_ip=192.168.1.10" -var="cluster_start_ip=192.168.1.11" -var="agent_alb_ip_range=192.168.1.30-192.168.1.40"
+tofu apply -var="agent_node_count=3" -var="load_balancer_ip=192.168.1.10" -var="cluster_start_ip=192.168.1.11"  -var='agent_alb_additional_ips=["192.168.1.30","192.168.1.31","192.168.1.32","192.168.1.33","192.168.1.34","192.168.1.35","192.168.1.36","192.168.1.37","192.168.1.38","192.168.1.39","192.168.1.40"]'
 ```
 
 Unless you have provided your own names, you should expect the following resources to be created in XOA:

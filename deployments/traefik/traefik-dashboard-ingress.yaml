@@ -18,4 +18,4 @@ spec:
         - name: api@internal
           kind: TraefikService
   tls:
-    secretName: traefik-${cert_manager_cloudflare_dns_secret_name_prefix}-${cert_manager_issuer_selected_name}-tls
+    secretName: traefik-${cert_manager_cloudflare_dns_secret_name_prefix}-${cert_manager_issuer_environment}-tls

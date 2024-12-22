@@ -13,20 +13,41 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: kubernetes-dashboard-ingress
+  name: dashboard-https
   namespace: kubernetes-dashboard
 spec:
   entryPoints:
     - websecure
   routes:
-    - kind: Rule
-      match: Host(`kubernetes-dashboard.my-domain.com`)
-      priority: 10
+    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/api/v1/login`)
+      kind: Rule
       services:
-        - kind: Service
-          name: kubernetes-dashboard
-          namespace: kubernetes-dashboard
-          port: 443
-          serversTransport: kubernetes-dashboard-transport
+        - name: kubernetes-dashboard-auth
+          port: 8000
+    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/api/v1/csrftoken/login`)
+      kind: Rule
+      services:
+        - name: kubernetes-dashboard-auth
+          port: 8000
+    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/api/v1/me`)
+      kind: Rule
+      services:
+        - name: kubernetes-dashboard-auth
+          port: 8000
+    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/api`)
+      kind: Rule
+      services:
+        - name: kubernetes-dashboard-api
+          port: 8000
+    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/metrics`)
+      kind: Rule
+      services:
+        - name: kubernetes-dashboard-api
+          port: 8000
+    - match: Host(`kubernetes-dashboard.${kubernetes_cloudflare_dns_zone}`) && PathPrefix(`/`)
+      kind: Rule
+      services:
+        - name: kubernetes-dashboard-web
+          port: 8000
   tls:
-    secretName: my-domain-com-tls
+    secretName: kubernetes-dashboard-${kubernetes_dashboard_cloudflare_dns_secret_name_prefix}-${kubernetes_dashboard_issuer_environment}-tls

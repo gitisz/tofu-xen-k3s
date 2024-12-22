@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kubernetes-dashboard=${kubernetes_dashboard_cloudflare_dns_secret_name_prefix}
+  namespace: kubernetes-dashboard
+spec:
+  secretName: kubernetes-dashboard-${kubernetes_dashboard_cloudflare_dns_secret_name_prefix}-production-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "kubernetes-dashboard.${kubernetes_dashboard_cloudflare_dns_zone}"
+  dnsNames:
+    - "kubernetes-dashboard.${kubernetes_dashboard_cloudflare_dns_zone}"
