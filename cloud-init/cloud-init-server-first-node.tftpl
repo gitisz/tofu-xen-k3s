@@ -62,6 +62,10 @@ runcmd:
     if ! grep -q "export PATH=\"/usr/local/bin:\$PATH\"" /home/administrator/.bashrc; then
       echo 'export PATH="/usr/local/bin:$PATH"' >> /home/administrator/.bashrc
     fi
+  - cp /k3s/.bash_aliases /home/administrator/.bash_aliases
+  - chown administrator:administrator /home/administrator/.bash_aliases
+  - chmod 644 /home/administrator/.bash_aliases
+  - echo 'source ~/.bash_aliases' >> /home/administrator/.bashrc
   - |
     ############
     # INSTALL: kube-vip
@@ -163,11 +167,31 @@ runcmd:
     helm repo update
     kubectl create namespace traefik
     helm install --namespace=traefik traefik traefik/traefik --values=/k3s/traefik/chart-values.yaml --kubeconfig=/etc/rancher/k3s/k3s.yaml
+    # helm uninstall --namespace=traefik traefik traefik/traefik --kubeconfig=/etc/rancher/k3s/k3s.yaml
     kubectl apply -f /k3s/traefik/traefik-default-headers.yaml
     kubectl apply -f /k3s/traefik/traefik-dashboard-auth.yaml
     kubectl apply -f /k3s/traefik/traefik-dashboard-middleware.yaml
     kubectl apply -f /k3s/traefik/traefik-dashboard-ingress.yaml
     kubectl apply -f /k3s/traefik/certificates/${cert_manager_issuer_environment}/traefik-certificate.yaml
+
+      %{ endif }
+      %{ if with_k8s_dashboard == "true" }
+
+  - |
+    ############
+    # INSTALL: k8s dashboard
+    ############
+    helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+    helm repo update
+    kubectl create namespace kubernetes-dashboard
+    helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
+      --create-namespace --namespace kubernetes-dashboard \
+      --values=/k3s/kubernetes-dashboard/chart-values.yaml \
+      --kubeconfig=/etc/rancher/k3s/k3s.yaml
+    kubectl apply -f /k3s/kubernetes-dashboard/k8s-dashboard-admin-user-role.yaml
+    kubectl apply -f /k3s/kubernetes-dashboard/k8s-dashboard-admin-user.yaml
+    kubectl apply -f /k3s/kubernetes-dashboard/certificates/${cert_manager_issuer_environment}/kubernetes-dashboard-certificate.yaml
+    kubectl apply -f /k3s/kubernetes-dashboard/k8s-dashboard-ingress.yaml
 
       %{ endif }
 
@@ -176,6 +200,11 @@ write_files:
     permissions: "0440"
     content: |
       Defaults    secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+  - path: /k3s/.bash_aliases
+    permissions: "0644"
+    content: |
+      alias k='kubectl'
 
   - path: /k3s/metallb-address-pool.yaml
     permissions: "0644"
@@ -236,5 +265,33 @@ write_files:
     permissions: "0440"
     content: |
       ${traefik_certificates_environment_certificate}
+
+      %{ endif }
+      %{ if with_k8s_dashboard == "true" }
+
+  - path: /k3s/kubernetes-dashboard/chart-values.yaml
+    permissions: "0440"
+    content: |
+      ${kubernetes_chart_values}
+
+  - path: /k3s/kubernetes-dashboard/k8s-dashboard-admin-user-role.yaml
+    permissions: "0440"
+    content: |
+      ${kubernetes_dashboard_admin_user_role}
+
+  - path: /k3s/kubernetes-dashboard/k8s-dashboard-admin-user.yaml
+    permissions: "0440"
+    content: |
+      ${kubernetes_dashboard_admin_user}
+
+  - path: /k3s/kubernetes-dashboard/certificates/${cert_manager_issuer_environment}/kubernetes-dashboard-certificate.yaml
+    permissions: "0440"
+    content: |
+      ${kubernetes_dashboard_certificates_environment_certificate}
+
+  - path: /k3s/kubernetes-dashboard/k8s-dashboard-ingress.yaml
+    permissions: "0440"
+    content: |
+      ${kubernetes_dashboard_ingress}
 
       %{ endif }

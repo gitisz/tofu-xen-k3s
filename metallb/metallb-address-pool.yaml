@@ -1,3 +1,4 @@
+---
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
@@ -5,7 +6,8 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    - ${agent_alb_ip_range}
+    - ${agent_alb_primary_ip}/32%{ for agent_alb_ip in agent_alb_additional_ips }
+    - ${agent_alb_ip}/32%{ endfor }
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement

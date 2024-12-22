@@ -1,32 +1,91 @@
----
 apiVersion: traefik.io/v1alpha1
-kind: ServersTransport
+kind: Middleware
 metadata:
-  name: kubernetes-dashboard-transport
-  namespace: kubernetes-dashboard
-
-spec:
-  serverName: kubernetes-dashboard
-  insecureSkipVerify: true
-
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: kubernetes-dashboard-ingress
+  name: dashboard-http-redirect
   namespace: kubernetes-dashboard
 spec:
-  entryPoints:
-    - websecure
-  routes:
-    - kind: Rule
-      match: Host(`kubernetes-dashboard.my-domain.com`)
-      priority: 10
-      services:
-        - kind: Service
-          name: kubernetes-dashboard
-          namespace: kubernetes-dashboard
-          port: 443
-          serversTransport: kubernetes-dashboard-transport
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dashboard-http-redirect
+  namespace: kubernetes-dashboard
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: kube-dashboard-dashboard-http-redirect@kubernetescrd
+spec:
+  rules:
+  - host: ${kubernetes_dashboard_fqdn}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kubernetes-dashboard-web
+            port:
+              number: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dashboard-https
+  namespace: kubernetes-dashboard
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
   tls:
-    secretName: my-domain-com-tls
+    - hosts:
+        - ${kubernetes_dashboard_fqdn}
+      secretName: kubernetes-dashboard-${kubernetes_dashboard_cloudflare_dns_secret_name_prefix}-${kubernetes_dashboard_issuer_environment}-tls
+  rules:
+    - host: ${kubernetes_dashboard_fqdn}
+      http:
+        paths:
+          - path: /api/v1/login
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-auth
+                port:
+                  number: 8000
+          - path: /api/v1/csrftoken/login
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-auth
+                port:
+                  number: 8000
+          - path: /api/v1/me
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-auth
+                port:
+                  number: 8000
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-api
+                port:
+                  number: 8000
+          - path: /metrics
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-api
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard-web
+                port:
+                  number: 8000
+

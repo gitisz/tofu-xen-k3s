@@ -4,6 +4,7 @@
         "clustersecrets",
         "emberstack",
         "jetstack",
+        "kubeconfig",
         "letsencrypt",
         "snapserver",
         "templatefile",
