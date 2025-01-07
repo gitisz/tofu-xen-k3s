@@ -106,7 +106,7 @@ resource "xenorchestra_vm" "server_other_node" {
 
 resource "xenorchestra_vm" "agent_first_node" {
   memory_max  = var.agent_node_memory
-  cpus        = var.agent_node_memory
+  cpus        = var.agent_node_cpu
   name_label  = "${var.agent_host_name_prefix}-0"
   template    = data.xenorchestra_template.vm_template.id
   cloud_config     = xenorchestra_cloud_config.cloud_config_agent_first_node.template
@@ -139,14 +139,14 @@ resource "xenorchestra_vm" "agent_first_node" {
 
 resource "xenorchestra_vm" "agent_other_node" {
   count       = var.agent_node_count - 1
-  memory_max  = 8589934592  # 8 GB in bytes
-  cpus        = 4
+  memory_max  = var.agent_node_memory
+  cpus        = var.agent_node_cpu
   name_label  = "${var.agent_host_name_prefix}-${count.index + 1}"
   template    = data.xenorchestra_template.vm_template.id
   cloud_config     = xenorchestra_cloud_config.cloud_config_agent_other_node[count.index].template
   cloud_network_config = xenorchestra_cloud_config.cloud_network_config_agent_other_node[count.index].template
   affinity_host = data.xenorchestra_hosts.pool.hosts[count.index % length(data.xenorchestra_hosts.pool.hosts)].id
-  depends_on = [ xenorchestra_vm.server_other_node ]
+  depends_on = [ xenorchestra_vm.agent_first_node ]
   tags = [
     "k3s",
     "k3s-agent"
