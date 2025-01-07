@@ -81,6 +81,28 @@ resource "xenorchestra_cloud_config" "cloud_config_server_first_node" {
         kubernetes_dashboard_cloudflare_dns_secret_name_prefix       = var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX,
         kubernetes_dashboard_cloudflare_dns_zone                     = var.CERT_MANAGER_CLOUDFLARE_DNS_ZONE
       }))
+
+
+      # rancher
+      with_rancher_dashboard                                = "${var.with_rancher_dashboard}",
+      bootstrap_password                                    = "${var.RANCHER_BOOTSTRAP_PASSWORD}",
+      rancher_dashboard_fqdn                                = "${var.RANCHER_DASHBOARD_FQDN}",
+      cert_manager_letsencrypt_email                        = "${var.CERT_MANAGER_LETSENCRYPT_EMAIL}"
+      rancher_dashboard_service                             = indent(6, templatefile("./deployments/rancher-dashboard/rancher-dashboard-service.yaml", {
+        load_balancer_ip                                    = "${var.rancher_load_balancer_ip}"
+      })),
+      rancher_dashboard_middlewware                         = indent(6, templatefile("./deployments/rancher-dashboard/rancher-dashboard-middleware.yaml", {
+      })),
+      rancher_dashboard_ingress                             = indent(6, templatefile("./deployments/rancher-dashboard/rancher-dashboard-ingress.yaml", {
+        rancher_dashboard_fqdn                              = "${var.RANCHER_DASHBOARD_FQDN}",
+        cert_manager_cloudflare_dns_secret_name_prefix      = "${var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX}",
+        cert_manager_issuer_environment                     = "${local.cert_manager_issuer_environment}"
+      })),
+      rancher_dashboard_certificates_environment_certificate      = indent(6, templatefile("./deployments/rancher-dashboard/certificates/${local.cert_manager_issuer_environment}/rancher-dashboard-certificate.yaml", {
+        cert_manager_cloudflare_dns_secret_name_prefix      = "${var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX}",
+        cert_manager_cloudflare_dns_zone                    = "${var.CERT_MANAGER_CLOUDFLARE_DNS_ZONE}"
+      }))
+
     }
   )
 }

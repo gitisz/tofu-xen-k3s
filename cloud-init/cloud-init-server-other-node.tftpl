@@ -39,7 +39,8 @@ packages:
   - gnupg
   - make
   - tree
-  - ufw
+  - chrony
+  - open-iscsi
   - ca-certificates
 
 package_update: true
@@ -80,7 +81,22 @@ runcmd:
       --tls-san ${server_alb_ip}
 
 write_files:
+
   - path: /etc/sudoers.d/admin_path
     permissions: "0440"
     content: |
       Defaults    secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+  - path: /etc/chrony/chrony.conf
+    content: |
+      pool 0.opensuse.pool.ntp.org iburst
+      pool 1.opensuse.pool.ntp.org iburst
+      pool 2.opensuse.pool.ntp.org iburst
+      pool 3.opensuse.pool.ntp.org iburst
+      driftfile /var/lib/chrony/chrony.drift
+      makestep 1.0 3
+      rtcsync
+      allow 127.0.0.1
+      allow ::1
+    owner: root:root
+    permissions: '0644'

@@ -2,10 +2,12 @@
     "cSpell.words": [
         "clustersecret",
         "clustersecrets",
+        "cpus",
         "emberstack",
         "jetstack",
         "kubeconfig",
         "letsencrypt",
+        "middlewware",
         "snapserver",
         "templatefile",
         "Traefik",
