@@ -44,16 +44,40 @@ variable "KUBERNETES_DASHBOARD_FQDN" {
   sensitive   = true
 }
 
+variable "RANCHER_DASHBOARD_FQDN" {
+  sensitive   = true
+}
+
+variable "RANCHER_BOOTSTRAP_PASSWORD" {
+  sensitive = true
+}
+
 variable "server_host_name_prefix" {
-  default = "TOFU-SRVR"
+  default = "TOFU-SRV"
 }
 
 variable "agent_host_name_prefix" {
-  default = "TOFU-AGNT"
+  default = "TOFU-AGN"
 }
 
 variable "server_node_count" {
   default = 3
+}
+
+variable "server_node_cpu" {
+  default = 8
+}
+
+variable "server_node_memory" {
+  default = 17179869184
+}
+
+variable "agent_node_cpu" {
+  default = 8
+}
+
+variable "agent_node_memory" {
+  default = 17179869184
 }
 
 variable "agent_node_count" {
@@ -68,16 +92,14 @@ variable "server_alb_ip" {
   default = "10.10.10.3"
 }
 
-
 variable "agent_alb_primary_ip" {
-  default = "10.10.10.30"
+  default = "10.10.10.31"
 }
 
 variable "agent_alb_additional_ips" {
   description = "List of IP addresses for agent ALB"
   type        = list(string)
   default     = [
-    "10.10.10.31",
     "10.10.10.32",
     "10.10.10.33",
     "10.10.10.34",
@@ -106,4 +128,12 @@ variable "with_traefik" {
 
 variable "with_k8s_dashboard" {
   default = "false"
+}
+
+variable "with_rancher_dashboard" {
+  default = "false"
+}
+
+variable "rancher_load_balancer_ip" {
+  default = "10.10.10.32"
 }

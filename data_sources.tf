@@ -1,5 +1,5 @@
 data "xenorchestra_pool" "pool" {
-  name_label = "CLUSTER-0"
+  name_label = "CLUSTER-1"
 }
 
 data "xenorchestra_hosts" "pool" {
@@ -15,7 +15,7 @@ data "xenorchestra_template" "vm_template" {
 }
 
 data "xenorchestra_sr" "sr" {
-  name_label = "K3S-SR"
+  name_label = "RANCHER-K3S"
   pool_id = data.xenorchestra_pool.pool.id
 }
 

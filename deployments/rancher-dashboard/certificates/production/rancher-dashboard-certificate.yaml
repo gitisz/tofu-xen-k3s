@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: rancher-dashboard=${cert_manager_cloudflare_dns_secret_name_prefix}
+  namespace: cattle-system
+spec:
+  secretName: rancher-dashboard-${cert_manager_cloudflare_dns_secret_name_prefix}-production-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "rancher.${cert_manager_cloudflare_dns_zone}"
+  dnsNames:
+    - "rancher.${cert_manager_cloudflare_dns_zone}"

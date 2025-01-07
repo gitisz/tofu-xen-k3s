@@ -1,0 +1,20 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: rancher-dashboard-ingress
+  namespace: cattle-system
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`${rancher_dashboard_fqdn}`)
+      kind: Rule
+      middlewares:
+        - name: rancher-dashboard-middleware
+      services:
+        - name: rancher-dashboard-service
+          port: 80
+  tls:
+    secretName: rancher-dashboard-${cert_manager_cloudflare_dns_secret_name_prefix}-${cert_manager_issuer_environment}-tls
