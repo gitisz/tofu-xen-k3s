@@ -6,6 +6,7 @@ This repository contains Terraform ([OpenTofu](https://opentofu.org/docs/)) to f
  - [`cert-manager`](https://cert-manager.io/docs/) for SSL/TLS certificates
  - [`traefik`](https://doc.traefik.io/traefik/) for ingress routing
  - [`kubernetes-dashboard`](https://github.com/kubernetes/dashboard/) for cluster management
+ - [`rancher`](https://ranchermanager.docs.rancher.com/) for cluster management
 
 The Terraform relies heavily on [cloud-init](https://cloudinit.readthedocs.io/en/latest/index.html) which is used to configure the VMs with all this goodness.
 
@@ -226,7 +227,7 @@ This capability enables you manage your cluster using a web-based dashboard.
 
 Additionally, when paired with [cert-manager](https://cert-manager.io/docs/), you can configure `IngressRoute`(s) with Traefik to expose a trusted certificate issued by Let's Encrypt.
 
-**NOTE**: _The kubernetes-dashboard configuration requires Traefik and Cert-Manager to also have been installed._
+**NOTE**: _The kubernetes-dashboard configuration requires Traefik and Cert-Manager to also be installed._
 
 ### Automatically Configure Kubernetes Dashboard
 Before proceeding, you will need to update and source your `.env` file. The following environment variables are required:
@@ -254,6 +255,33 @@ kubectl -n kubernetes-dashboard create token admin-user
 ```
 
 Copy the token and paste it into the kubernetes dashboard login form.
+
+## With Rancher
+You have an additional option to install the [`rancher`](https://ranchermanager.docs.rancher.com/) on the cluster.
+
+Additionally, when paired with [cert-manager](https://cert-manager.io/docs/), you can configure `IngressRoute`(s) with Traefik to expose a trusted certificate issued by Let's Encrypt.
+
+**NOTE**: _The rancher configuration requires Traefik and Cert-Manager to also be installed._
+
+### Automatically Configure Rancher Dashboard
+Before proceeding, you will need to update and source your `.env` file. The following environment variables are required:
+
+ - **TF_VAR_RANCHER_DASHBOARD_FQDN**: `<rancher_dashboard_fqdn>` the fully qualified domain name to expose the rancher dashboard.
+ - **TF_VAR_RANCHER_BOOTSTRAP_PASSWORD**: `<rancher_bootstrap_password>` the password to use to bootstrap the rancher server (later used to log into the dashboard).
+
+
+When you execute the Terraform `apply`, you can provide the `with_rancher_dashboard=true` option to automatically install `rancher-dashboard` onto the cluster.
+
+```
+tofu plan -var="with_cert_manager=true" -var="with_traefik=true" -var="with_rancher_dashboard=true"
+```
+
+Or:
+
+```
+tofu apply -auto-approve -var="with_cert_manager=true" -var="with_traefik=true" -var="with_rancher_dashboard=true"
+```
+
 
 ## Inspirations
 This Terraform configuration was inspired by the following sources:
