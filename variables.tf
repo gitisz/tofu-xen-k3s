@@ -12,6 +12,32 @@ variable "XOA_PASSWORD" {
   sensitive   = true
 }
 
+variable "INTERNAL_DOMAIN" {
+  description = "The internal domain of your network."
+  sensitive   = true
+}
+
+variable "INTERNAL_GATEWAY_IP" {
+  description = "The internal gateway IP of your network."
+  sensitive   = true
+}
+
+variable "INTERNAL_DNS_SERVERS" {
+  description = "The internal DNS servers of your network."
+  sensitive   = true
+}
+
+
+variable "SSH_ADMINISTRATOR_USERNAME" {
+  description = "The username of the SSH administrator to enable logging into K3S nodes."
+  sensitive   = true
+}
+
+variable "SSH_ADMINISTRATOR_PASSWORD" {
+  description = "The password of the SSH administrator to enable logging into K3S nodes (optional, but must be generated using `openssl passwd -6`).v"
+  sensitive   = true
+}
+
 variable "CERT_MANAGER_CLOUDFLARE_EMAIL" {
   sensitive   = true
 }
@@ -84,31 +110,32 @@ variable "agent_node_count" {
   default = 3
 }
 
-variable "cluster_start_ip" {
-  default = "10.10.10.4"
+# agent nodes are assigned w/ dhcp
+variable "server_start_ip" {
+  default = "10.10.1.20"
 }
 
+variable "server_subnet_mask" {
+  default = "21"
+}
+
+# kube-vpi
 variable "server_alb_ip" {
-  default = "10.10.10.3"
+  default = "10.10.1.30"
 }
 
+# metallb
 variable "agent_alb_primary_ip" {
-  default = "10.10.10.31"
+  default = "10.10.1.40"
 }
 
 variable "agent_alb_additional_ips" {
   description = "List of IP addresses for agent ALB"
   type        = list(string)
   default     = [
-    "10.10.10.32",
-    "10.10.10.33",
-    "10.10.10.34",
-    "10.10.10.35",
-    "10.10.10.36",
-    "10.10.10.37",
-    "10.10.10.38",
-    "10.10.10.39",
-    "10.10.10.40"
+    "10.10.1.41",
+    "10.10.1.42",
+    "10.10.1.43"
   ]
 }
 
@@ -135,5 +162,5 @@ variable "with_rancher_dashboard" {
 }
 
 variable "rancher_load_balancer_ip" {
-  default = "10.10.10.32"
+  default = "10.10.1.41"
 }

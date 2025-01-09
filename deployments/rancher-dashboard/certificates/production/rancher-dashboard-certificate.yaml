@@ -9,6 +9,6 @@ spec:
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
-  commonName: "rancher.${cert_manager_cloudflare_dns_zone}"
+  commonName: "${rancher_dashboard_fqdn}"
   dnsNames:
-    - "rancher.${cert_manager_cloudflare_dns_zone}"
+    - "${rancher_dashboard_fqdn}"

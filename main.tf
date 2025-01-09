@@ -21,15 +21,7 @@ resource "xenorchestra_vm" "server_first_node" {
   ]
 
   network {
-    network_id = data.xenorchestra_network.eth0.id
-  }
-
-  network {
-    network_id = data.xenorchestra_network.vlan111.id
-  }
-
-  network {
-    network_id = data.xenorchestra_network.eth1.id
+    network_id = data.xenorchestra_network.internal_iszland_network.id
   }
 
   disk {
@@ -41,7 +33,7 @@ resource "xenorchestra_vm" "server_first_node" {
   connection {
     type        = "ssh"
     user        = "administrator"
-    host        = "${var.cluster_start_ip}"
+    host        = "${var.server_start_ip}"
     private_key = file(".ssh/id_rsa")
   }
 
@@ -55,7 +47,7 @@ resource "xenorchestra_vm" "server_first_node" {
   }
 
   provisioner "local-exec" {
-    command = "bash ./scripts/fetch_k3s.sh ${var.XOA_USER} ${var.cluster_start_ip} ${var.server_alb_ip}"
+    command = "bash ./scripts/fetch_k3s.sh ${var.XOA_USER} ${var.server_start_ip} ${var.server_alb_ip}"
   }
 }
 
@@ -76,15 +68,7 @@ resource "xenorchestra_vm" "server_other_node" {
   ]
 
   network {
-    network_id = data.xenorchestra_network.eth0.id
-  }
-
-  network {
-    network_id = data.xenorchestra_network.vlan111.id
-  }
-
-  network {
-    network_id = data.xenorchestra_network.eth1.id
+    network_id = data.xenorchestra_network.internal_iszland_network.id
   }
 
   disk {
@@ -119,15 +103,7 @@ resource "xenorchestra_vm" "agent_first_node" {
   ]
 
   network {
-    network_id = data.xenorchestra_network.eth0.id
-  }
-
-  network {
-    network_id = data.xenorchestra_network.vlan111.id
-  }
-
-  network {
-    network_id = data.xenorchestra_network.eth1.id
+    network_id = data.xenorchestra_network.internal_iszland_network.id
   }
 
   disk {
@@ -153,15 +129,7 @@ resource "xenorchestra_vm" "agent_other_node" {
   ]
 
   network {
-    network_id = data.xenorchestra_network.eth0.id
-  }
-
-  network {
-    network_id = data.xenorchestra_network.vlan111.id
-  }
-
-  network {
-    network_id = data.xenorchestra_network.eth1.id
+    network_id = data.xenorchestra_network.internal_iszland_network.id
   }
 
   disk {

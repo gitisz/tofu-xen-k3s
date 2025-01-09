@@ -9,6 +9,6 @@ spec:
   issuerRef:
     name: letsencrypt-staging
     kind: ClusterIssuer
-  commonName: "kubernetes-dashboard.${kubernetes_dashboard_cloudflare_dns_zone}"
+  commonName: "${kubernetes_dashboard_fqdn}"
   dnsNames:
-    - "kubernetes-dashboard.${kubernetes_dashboard_cloudflare_dns_zone}"
+    - "${kubernetes_dashboard_fqdn}"

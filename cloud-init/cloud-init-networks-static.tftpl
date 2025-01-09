@@ -6,11 +6,8 @@ network:
     name: enX0
     subnets:
       - type: static
-        address: ${ip_address}/24
-        gateway: 10.10.10.1
-        dns_nameservers:
-          - 10.10.10.10
-          - 10.10.10.11
-          - 10.10.10.12
+        address: ${ip_address}/${ip_subnet_mask}
+        gateway: ${ip_internal_gateway}
+        dns_nameservers: [ ${ip_internal_dns_servers} ]
         dns_search:
-          - ISZLAND.COM
+          - ${internal_domain}

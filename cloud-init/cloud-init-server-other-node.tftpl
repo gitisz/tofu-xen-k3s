@@ -5,8 +5,8 @@ groups:
   - local_admins: [root]
 
 users:
-  - name: "administrator"
-    gecos: "administrator"
+  - name: "${ssh_administrator_username}"
+    gecos: "${ssh_administrator_username}"
     groups:
       [
         adm,
@@ -25,6 +25,7 @@ users:
     ssh_authorized_keys:
       - ${ssh_public_key}
     lock_passwd: false
+    passwd: ${ssh_administrator_password}
     shell: /bin/bash
 
 packages:
@@ -69,7 +70,7 @@ runcmd:
     ############
     curl -sfL https://get.k3s.io | sh -s - server \
       --token ${k3s_token} \
-      --server https://${cluster_start_ip}:6443 \
+      --server https://${server_start_ip}:6443 \
       --disable servicelb \
       --disable traefik \
       --write-kubeconfig-mode 644 \

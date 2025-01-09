@@ -5,8 +5,8 @@ groups:
   - local_admins: [root]
 
 users:
-  - name: "administrator"
-    gecos: "administrator"
+  - name: "${ssh_administrator_username}"
+    gecos: "${ssh_administrator_username}"
     groups:
       [
         adm,
@@ -25,6 +25,7 @@ users:
     ssh_authorized_keys:
       - ${ssh_public_key}
     lock_passwd: false
+    passwd: ${ssh_administrator_password}
     shell: /bin/bash
 
 packages:
