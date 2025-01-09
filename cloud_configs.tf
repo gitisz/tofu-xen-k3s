@@ -13,15 +13,17 @@ resource "xenorchestra_cloud_config" "cloud_config_server_first_node" {
     "./cloud-init/cloud-init-server-first-node.tftpl",
     {
       count                   = 0,
-      host_name_prefix        = var.server_host_name_prefix,
+      host_name_prefix        = "${var.server_host_name_prefix}",
       ssh_public_key          = file(".ssh/id_rsa_pub"),
       k3s_token               = file(".k3s/k3s_token"),
-      server_alb_ip           = var.server_alb_ip,
-      cluster_start_ip        = "${var.cluster_start_ip}",
+      server_alb_ip           = "${var.server_alb_ip}",
+      server_start_ip        = "${var.server_start_ip}",
       metallb_yaml            = indent(6, templatefile("./metallb/metallb-address-pool.yaml", {
         agent_alb_primary_ip = var.agent_alb_primary_ip
-        agent_alb_additional_ips    = var.agent_alb_additional_ips
+        agent_alb_additional_ips    = "${var.agent_alb_additional_ips}"
       })),
+      ssh_administrator_username = "${var.SSH_ADMINISTRATOR_USERNAME}"
+      ssh_administrator_password = "${var.SSH_ADMINISTRATOR_PASSWORD}"
 
       # cert-manager
       with_cert_manager                                 = var.with_cert_manager,
@@ -60,8 +62,9 @@ resource "xenorchestra_cloud_config" "cloud_config_server_first_node" {
       traefik_traefik_default_headers                   = indent(6, templatefile("./deployments/traefik/traefik-default-headers.yaml", {
       })),
       traefik_certificates_environment_certificate      = indent(6, templatefile("./deployments/traefik/certificates/${local.cert_manager_issuer_environment}/traefik-certificate.yaml", {
-        traefik_cloudflare_dns_secret_name_prefix       = var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX,
-        traefik_cloudflare_dns_zone                     = var.CERT_MANAGER_CLOUDFLARE_DNS_ZONE
+        cert_manager_cloudflare_dns_secret_name_prefix        = var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX,
+        cert_manager_cloudflare_dns_zone                      = var.CERT_MANAGER_CLOUDFLARE_DNS_ZONE
+        traefik_dashboard_fqdn                                = var.TRAEFIK_DASHBOARD_FQDN
       })),
 
       # k8s dashboard
@@ -77,9 +80,9 @@ resource "xenorchestra_cloud_config" "cloud_config_server_first_node" {
         kubernetes_dashboard_cloudflare_dns_secret_name_prefix  = "${var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX}",
         kubernetes_dashboard_issuer_environment                 = local.cert_manager_issuer_environment
       })),
-      kubernetes_dashboard_certificates_environment_certificate      = indent(6, templatefile("./deployments/kubernetes-dashboard/certificates/${local.cert_manager_issuer_environment}/kubernetes-dashboard-certificate.yaml", {
-        kubernetes_dashboard_cloudflare_dns_secret_name_prefix       = var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX,
-        kubernetes_dashboard_cloudflare_dns_zone                     = var.CERT_MANAGER_CLOUDFLARE_DNS_ZONE
+      kubernetes_dashboard_certificates_environment_certificate       = indent(6, templatefile("./deployments/kubernetes-dashboard/certificates/${local.cert_manager_issuer_environment}/kubernetes-dashboard-certificate.yaml", {
+        kubernetes_dashboard_cloudflare_dns_secret_name_prefix        = var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX,
+        kubernetes_dashboard_fqdn                                     = var.KUBERNETES_DASHBOARD_FQDN
       }))
 
 
@@ -99,10 +102,9 @@ resource "xenorchestra_cloud_config" "cloud_config_server_first_node" {
         cert_manager_issuer_environment                     = "${local.cert_manager_issuer_environment}"
       })),
       rancher_dashboard_certificates_environment_certificate      = indent(6, templatefile("./deployments/rancher-dashboard/certificates/${local.cert_manager_issuer_environment}/rancher-dashboard-certificate.yaml", {
-        cert_manager_cloudflare_dns_secret_name_prefix      = "${var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX}",
-        cert_manager_cloudflare_dns_zone                    = "${var.CERT_MANAGER_CLOUDFLARE_DNS_ZONE}"
+        cert_manager_cloudflare_dns_secret_name_prefix            = "${var.CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX}",
+        rancher_dashboard_fqdn                                    = var.RANCHER_DASHBOARD_FQDN
       }))
-
     }
   )
 }
@@ -112,7 +114,11 @@ resource "xenorchestra_cloud_config" "cloud_network_config_server_first_node" {
   template  = templatefile(
     "./cloud-init/cloud-init-networks-static.tftpl",
     {
-      ip_address            = "${var.cluster_start_ip}"
+      ip_address              = "${var.server_start_ip}"
+      ip_subnet_mask          = "${var.server_subnet_mask}"
+      ip_internal_gateway     = "${var.INTERNAL_GATEWAY_IP}"
+      ip_internal_dns_servers = "${var.INTERNAL_DNS_SERVERS}"
+      internal_domain         = "${var.INTERNAL_DOMAIN}"
     }
   )
 }
@@ -127,8 +133,10 @@ resource "xenorchestra_cloud_config" "cloud_config_server_other_node" {
       host_name_prefix      = var.server_host_name_prefix,
       ssh_public_key        = file(".ssh/id_rsa_pub"),
       k3s_token             = file(".k3s/k3s_token"),
-      server_alb_ip        = var.server_alb_ip,
-      cluster_start_ip      = "${var.cluster_start_ip}"
+      server_alb_ip         = var.server_alb_ip,
+      server_start_ip       = "${var.server_start_ip}"
+      ssh_administrator_username = "${var.SSH_ADMINISTRATOR_USERNAME}"
+      ssh_administrator_password = "${var.SSH_ADMINISTRATOR_PASSWORD}"
     }
   )
 }
@@ -140,7 +148,11 @@ resource "xenorchestra_cloud_config" "cloud_network_config_server_other_node" {
   template                  = templatefile(
     "./cloud-init/cloud-init-networks-static.tftpl",
     {
-      ip_address            = data.external.next_ip[count.index].result.next_ip
+      ip_address              = data.external.next_ip[count.index].result.next_ip
+      ip_subnet_mask          = "${var.server_subnet_mask}"
+      ip_internal_gateway     = "${var.INTERNAL_GATEWAY_IP}"
+      ip_internal_dns_servers = "${var.INTERNAL_DNS_SERVERS}"
+      internal_domain         = "${var.INTERNAL_DOMAIN}"
     }
   )
 }
@@ -160,12 +172,14 @@ resource "xenorchestra_cloud_config" "cloud_config_agent_first_node" {
   template  = templatefile(
     "./cloud-init/cloud-init-agent-first-node.tftpl",
     {
-      count                   = 0,
-      host_name_prefix        = var.agent_host_name_prefix,
-      ssh_public_key          = file(".ssh/id_rsa_pub"),
-      k3s_token               = file(".k3s/k3s_token"),
-      server_alb_ip           = var.server_alb_ip,
-      cluster_start_ip        = "${var.cluster_start_ip}",
+      count                   = 0
+      host_name_prefix        = var.agent_host_name_prefix
+      ssh_public_key          = file(".ssh/id_rsa_pub")
+      k3s_token               = file(".k3s/k3s_token")
+      server_alb_ip           = var.server_alb_ip
+      server_start_ip         = "${var.server_start_ip}"
+      ssh_administrator_username = "${var.SSH_ADMINISTRATOR_USERNAME}"
+      ssh_administrator_password = "${var.SSH_ADMINISTRATOR_PASSWORD}"
     }
   )
 }
@@ -176,6 +190,9 @@ resource "xenorchestra_cloud_config" "cloud_network_config_agent_first_node" {
   template                  = templatefile(
     "./cloud-init/cloud-init-networks-dhcp.tftpl",
     {
+      ip_internal_gateway     = "${var.INTERNAL_GATEWAY_IP}"
+      ip_internal_dns_servers = "${var.INTERNAL_DNS_SERVERS}"
+      internal_domain         = "${var.INTERNAL_DOMAIN}"
     }
   )
 }
@@ -187,12 +204,14 @@ resource "xenorchestra_cloud_config" "cloud_config_agent_other_node" {
   template                  = templatefile(
     "./cloud-init/cloud-init-agent-other-node.tftpl",
     {
-      count                 = count.index + 1,
-      host_name_prefix      = var.agent_host_name_prefix,
-      ssh_public_key        = file(".ssh/id_rsa_pub"),
-      k3s_token             = file(".k3s/k3s_token"),
-      server_alb_ip        = var.server_alb_ip,
-      cluster_start_ip      = "${var.cluster_start_ip}"
+      count                 = count.index + 1
+      host_name_prefix      = var.agent_host_name_prefix
+      ssh_public_key        = file(".ssh/id_rsa_pub")
+      k3s_token             = file(".k3s/k3s_token")
+      server_alb_ip         = var.server_alb_ip
+      server_start_ip       = "${var.server_start_ip}"
+      ssh_administrator_username = "${var.SSH_ADMINISTRATOR_USERNAME}"
+      ssh_administrator_password = "${var.SSH_ADMINISTRATOR_PASSWORD}"
     }
   )
 }
@@ -204,6 +223,9 @@ resource "xenorchestra_cloud_config" "cloud_network_config_agent_other_node" {
   template                  = templatefile(
     "./cloud-init/cloud-init-networks-dhcp.tftpl",
     {
+      ip_internal_gateway     = "${var.INTERNAL_GATEWAY_IP}"
+      ip_internal_dns_servers = "${var.INTERNAL_DNS_SERVERS}"
+      internal_domain         = "${var.INTERNAL_DOMAIN}"
     }
   )
 }

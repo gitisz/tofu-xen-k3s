@@ -34,11 +34,16 @@ data "xenorchestra_network" "eth1" {
   pool_id = data.xenorchestra_pool.pool.id
 }
 
+data "xenorchestra_network" "internal_iszland_network" {
+  name_label = "internal-iszland-network"
+  pool_id = data.xenorchestra_pool.pool.id
+}
+
 data "external" "next_ip" {
   count = length(data.xenorchestra_hosts.pool.hosts) - 1
   program = ["python3", "./scripts/next_ip.py"]
   query = {
-    start_ip  = var.cluster_start_ip
+    start_ip  = var.server_start_ip
     increment = count.index + 1
   }
 }

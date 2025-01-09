@@ -11,11 +11,18 @@ This repository contains Terraform ([OpenTofu](https://opentofu.org/docs/)) to f
 The Terraform relies heavily on [cloud-init](https://cloudinit.readthedocs.io/en/latest/index.html) which is used to configure the VMs with all this goodness.
 
 ## Getting Started
-Create a `.env` file with the following variables:
+Before proceeding, you will need to update and source your `.env` file. You can find a template in this project in the root folder with a file name of `dot_env`. Copy this file to `.env` and update the values.
 
-    export TF_VAR_XOA_URL=wss://<your_xoa_hostname_or_ip>
-    export TF_VAR_XOA_USER=<your_xoa_username>
-    export TF_VAR_XOA_PASSWORD=<your_xoa_password>
+The following environment variables are required:
+
+ - **export TF_VAR_XOA_URL=<xoa_url>** # The websocket url to your Xen Orchestra appliance, e.g. "wss://10.10.0.20"
+ - **export TF_VAR_XOA_USER=<xoa_user>** # The username of the Xen Orchestra administrator.
+ - **export TF_VAR_XOA_PASSWORD=<xoa_password>** # The password of the Xen Orchestra administrator.
+ - **export TF_VAR_INTERNAL_GATEWAY_IP=<internal_gateway_ip>** # The internal gateway IP address of your network.
+ - **export TF_VAR_INTERNAL_DNS_SERVERS=<internal_dns_servers>** # The internal DNS servers of your network (e.g. "10.1.0.11,10.1.0.11").
+ - **export TF_VAR_INTERNAL_DOMAIN=<internal_domain>** # The internal domain of your network.
+ - **export TF_VAR_SSH_ADMINISTRATOR_USERNAME=<ssh_administrator_username>** # The username of the SSH administrator to enable logging into K3S nodes.
+ - **export TF_VAR_SSH_ADMINISTRATOR_PASSWORD=<ssh_administrator_password>** # The password of the SSH administrator to enable logging into K3S nodes (optional, but must be generated using `openssl passwd -6`).
 
 Now source the `.env` file: `source .env`
 
@@ -88,6 +95,7 @@ This repository contains a Terraform configuration that will deploy a K3S cluste
 ### Planning the Deployment
 First, you should `tofu plan` your deployment and review the generated output to ensure that the deployment will meet your requirements.
 
+
 The Terraform has variables that enable you to customize the deployment, for example:
 
 ```
@@ -99,7 +107,7 @@ The output will show the plan for creating server nodes (based on your XCP-NC po
 When you are ready, execute `tofu apply -var="agent_node_count=3"`. When the first server node is actually created, it will be configured with a static IP address (also configurable as a variable).
 
 ```
-tofu apply -var="agent_node_count=3" -var="cluster_start_ip=192.168.1.10"
+tofu apply -var="agent_node_count=3" -var="server_start_ip=192.168.1.10"
 ```
 
 Using affinity, a server node will get created for each host within the XCP-NG XOA pool.
@@ -128,7 +136,7 @@ If the `tofu plan` looks good, you can execute it with `tofu apply`. Here is an 
 ```
 tofu apply -var="agent_node_count=3" \
   -var="load_balancer_ip=192.168.1.10" \
-  -var="cluster_start_ip=192.168.1.11" \
+  -var="server_start_ip=192.168.1.11" \
   -var="agent_alb_primary_ip=192.168.1.30"
   -var='agent_alb_additional_ips=["192.168.1.31","192.168.1.31","192.168.1.32","192.168.1.33","192.168.1.34","192.168.1.35","192.168.1.36","192.168.1.37","192.168.1.38","192.168.1.39","192.168.1.40"]'
 ```
@@ -160,11 +168,11 @@ You have an additional option to install [`cert-manager`](https://cert-manager.i
 
 Before proceeding, you will need to update and source your `.env` file. The following environment variables are required:
 
- - **TF_VAR_CERT_MANAGER_CLOUDFLARE_EMAIL**: `<cloudflare-email>` associated with the Cloudflare account.
- - **TF_VAR_CERT_MANAGER_CLOUDFLARE_API_TOKEN**: `<cloudflare-api-token>` retrieved from you Cloudflare account.
- - **TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX**: `<cloudflare-secret-name-prefix>` to be used for the Cloudflare DNS secret, e.g. A value of `my-domain-com` will result in a K3S secret `my-domain-com-production-tls` for appending to other app installations.
- - **TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_ZONE**: `<cloudflare-dns-zone>` e.g. `my-domain.com`
- - **TF_VAR_CERT_MANAGER_LETSENCRYPT_EMAIL**: `<your-email-address>` to be used for the Let's Encrypt email address.
+ - **export TF_VAR_CERT_MANAGER_CLOUDFLARE_EMAIL=<cloudflare_email>** # associated with the Cloudflare account.
+ - **export TF_VAR_CERT_MANAGER_CLOUDFLARE_API_TOKEN=<cloudflare_api_token>**: # retrieved from you Cloudflare account.
+ - **export TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX=<cloudflare_secret_name_prefix>** # to be used for the Cloudflare DNS secret, e.g. A value of `my-domain-com` will result in a K3S secret `my-domain-com-production-tls` for appending to other app installations.
+ - **export TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_ZONE=<cert_manager_cloudflare_dns_zone>** # e.g. `my-domain.com`
+ - **export TF_VAR_CERT_MANAGER_LETSENCRYPT_EMAIL=<cert_manager_letsencrypt_email>** # to be used for the Let's Encrypt email address.
 
 When you execute the Terraform `apply`, you can provide the `with_cert_manager=true` option to automatically install `cert-manager` on the cluster.
 
@@ -200,9 +208,9 @@ Additionally, when paired with [cert-manager](https://cert-manager.io/docs/), yo
 ### Automatically Configure Traefik
 Before proceeding, you will need to update and source your `.env` file. The following environment variables are required:
 
- - **TF_VAR_TRAEFIK_DASHBOARD_AUTH**: `<traefik_dashboard_auth>` a base64 encoded username & password to enable the Traefik dashboard to accept basic authentication.
- - **TF_VAR_TRAEFIK_DASHBOARD_FQDN**: `<traefik_dashboard_fqdn>` the fully qualified domain name to expose the Traefik dashboard.
- - **TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX**: `<cloudflare-dns-secret-name-prefix>` to be used for the Cloudflare DNS secret, e.g. A value of `my-domain-com` will result in a K3S secret `traefik-my-domain-com-staging-tls`.
+ - **export TF_VAR_TRAEFIK_DASHBOARD_AUTH=<traefik_dashboard_auth>**: # a base64 encoded username & password to enable the Traefik dashboard to accept basic authentication.
+ - **export TF_VAR_TRAEFIK_DASHBOARD_FQDN=<traefik_dashboard_fqdn>**: # the fully qualified domain name to expose the Traefik dashboard.
+ - **export TF_VAR_CERT_MANAGER_CLOUDFLARE_DNS_SECRET_NAME_PREFIX=<cert_manager_cloudflare_dns_secret_name_prefix>** # `<cloudflare-dns-secret-name-prefix>` to be used for the Cloudflare DNS secret, e.g. A value of `my-domain-com` will result in a K3S secret `traefik-my-domain-com-staging-tls`.
 
 When you execute the Terraform `apply`, you can provide the `with_traefik=true` option to automatically install `Traefik` onto the cluster.
 
@@ -232,7 +240,7 @@ Additionally, when paired with [cert-manager](https://cert-manager.io/docs/), yo
 ### Automatically Configure Kubernetes Dashboard
 Before proceeding, you will need to update and source your `.env` file. The following environment variables are required:
 
- - **TF_VAR_KUBERNETES_DASHBOARD_FQDN**: `<kubernetes_dashboard_fqdn>` the fully qualified domain name to expose the kubernetes dashboard.
+ - **export TF_VAR_KUBERNETES_DASHBOARD_FQDN=<kubernetes_dashboard_fqdn>**: # the fully qualified domain name to expose the kubernetes dashboard.
 
 When you execute the Terraform `apply`, you can provide the `with_k8s_dashboard=true` option to automatically install `kubernetes-dashboard` onto the cluster.
 
@@ -266,8 +274,8 @@ Additionally, when paired with [cert-manager](https://cert-manager.io/docs/), yo
 ### Automatically Configure Rancher Dashboard
 Before proceeding, you will need to update and source your `.env` file. The following environment variables are required:
 
- - **TF_VAR_RANCHER_DASHBOARD_FQDN**: `<rancher_dashboard_fqdn>` the fully qualified domain name to expose the rancher dashboard.
- - **TF_VAR_RANCHER_BOOTSTRAP_PASSWORD**: `<rancher_bootstrap_password>` the password to use to bootstrap the rancher server (later used to log into the dashboard).
+ - **export TF_VAR_RANCHER_DASHBOARD_FQDN=<rancher_dashboard_fqdn>**: # the fully qualified domain name to expose the rancher dashboard.
+ - **export TF_VAR_RANCHER_BOOTSTRAP_PASSWORD=<rancher_bootstrap_password>**: # the password to use to bootstrap the rancher server (later used to log into the dashboard).
 
 
 When you execute the Terraform `apply`, you can provide the `with_rancher_dashboard=true` option to automatically install `rancher-dashboard` onto the cluster.
